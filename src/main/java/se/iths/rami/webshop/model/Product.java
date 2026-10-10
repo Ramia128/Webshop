@@ -8,6 +8,21 @@ public class Product {
 
     public Product(String articleNumber, String title,
                    double price, String description) {
+        if (articleNumber == null || articleNumber.isBlank()) {
+            throw new IllegalArgumentException("Article number cant be empty");
+        }
+
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("Title cant be empty");
+        }
+
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Description cant be empty");
+        }
+
+        if (!Double.isFinite(price) || price < 0) {
+            throw new IllegalArgumentException("Price must be positive number");
+        }
 
         this.articleNumber = articleNumber;
         this.title = title;
@@ -17,9 +32,7 @@ public class Product {
     }
 
     public String toFileLine() {
-        String fileLine = "";
-        fileLine += articleNumber + ";" + title + ";" + price + ";" + description;
-        return fileLine;
+        return articleNumber + ";" + title + ";" + price + ";" + description;
     }
 
     public static Product fromFileLine(String line) {
