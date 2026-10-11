@@ -11,10 +11,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductFileStorage implements ProductStorage {
-    private Path file = Path.of("products.txt");
+    private final Path file;
+
+    public ProductFileStorage() {
+        this.file = Path.of("products.txt");
+    }
+
+    public ProductFileStorage(Path file) {
+        this.file = file;
+    }
+
 
     @Override
     public void saveProduct(Product product) {
+        if (getProduct(product.getArticleNumber()) != null) {
+            throw new IllegalArgumentException("Product already exists");
+        }
         try {
             Files.writeString(file, product.toFileLine() + System.lineSeparator(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
@@ -48,10 +60,15 @@ public class ProductFileStorage implements ProductStorage {
 
     @Override
     public Product getProduct(String articleNumber) {
+
+        if (articleNumber == null || articleNumber.isBlank()) {
+            throw new IllegalArgumentException("Article number cant be empty");
+        }
+
         List<Product> products = getProducts();
 
         for (Product product : products) {
-            if (product.getArticleNumber().equals(articleNumber)) {
+            if (product.getArticleNumber().equalsIgnoreCase(articleNumber)) {
                 return product;
             }
         }

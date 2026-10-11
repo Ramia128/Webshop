@@ -53,9 +53,7 @@ public class WebShopManager {
             switch (choice) {
                 case "1" -> addProductMenu();
                 case "2" -> getProductsMenu(discount);
-                case "3" -> {
-                    return;
-                }
+                case "3" -> getProductMenu(discount);
                 case "4" -> {
                     return;
                 }
@@ -67,14 +65,13 @@ public class WebShopManager {
 
     private Discount discountMenu() {
         Discount discount = null;
+        JPanel panel = createPanel(1, 2);
+        JTextField discountField = new JTextField(15);
+
+        panel.add(new JLabel("Enter discount code:"));
+        panel.add(discountField);
+
         while (true) {
-            JPanel panel = createPanel(1, 2);
-            JTextField discountField = new JTextField(15);
-
-
-            panel.add(new JLabel("Enter discount code:"));
-            panel.add(discountField);
-
             int panelWindow = confirmDialog(panel, "Dicount code");
 
             if (panelWindow != JOptionPane.OK_OPTION) {
@@ -89,6 +86,7 @@ public class WebShopManager {
             } else {
                 errorMessage("Invalid code: please enter tenpercent or halfprice",
                         "Invalid discount code");
+                discountField.setText("");
                 continue;
             }
 
@@ -98,28 +96,46 @@ public class WebShopManager {
     }
 
     private void getProductsMenu(Discount discount) {
-        String[] columns = {"Article number", "Title", "Price", "Description"};
-        Object[][] data = new Object[getProductsFromStorage().size()][4];
+        List<Product> products = getProductsFromStorage();
 
-        for (int i = 0; i < getProductsFromStorage().size(); i++) {
-            Product product = getProductsFromStorage().get(i);
-
-            data[i][0] = product.getArticleNumber();
-            data[i][1] = product.getTitle();
-            data[i][2] = String.format("%.2f", discount.calculatePrice(product.getPrice()));
-            data[i][3] = product.getDescription();
+        if (products.isEmpty()) {
+            plainMessage("No products found!", "Products");
+            return;
         }
 
-        JTable table = new JTable(data, columns);
-        table.setCellSelectionEnabled(true);
-        table.setAutoCreateRowSorter(true);
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(650, 300));
-
-        JOptionPane.showMessageDialog(null, scrollPane, "All products",
-                JOptionPane.PLAIN_MESSAGE);
+        createProductTable(products, discount, "All products");
     }
+
+    private void getProductMenu(Discount discount) {
+        JPanel panel = createPanel(1, 2);
+
+        JTextField articleNumberField = new JTextField(10);
+        panel.add(new JLabel("Article number:"));
+        panel.add(articleNumberField);
+
+        while (true) {
+
+            try {
+                int panelWindow = confirmDialog(panel, "Search product");
+                String articleNumber = articleNumberField.getText().trim();
+
+                if (panelWindow != JOptionPane.OK_OPTION) {
+                    return;
+                }
+
+                Product product = getProductFromStorage(articleNumber);
+                if (product == null) {
+                    throw new IllegalArgumentException("Product not found!");
+                }
+
+                createProductTable(List.of(product), discount, "Product info");
+            } catch (IllegalArgumentException e) {
+                errorMessage(e.getMessage(), "Error");
+                articleNumberField.setText("");
+            }
+        }
+    }
+
 
     private void addProductMenu() {
         JPanel panel = createPanel(4, 2);
@@ -165,6 +181,31 @@ public class WebShopManager {
         }
     }
 
+    private void createProductTable(List<Product> products, Discount discount, String title) {
+        String[] columns = {"Article number", "Title", "Price", "Description"};
+        Object[][] data = new Object[products.size()][4];
+
+        for (int i = 0; i < products.size(); i++) {
+            Product product = products.get(i);
+
+            data[i][0] = product.getArticleNumber();
+            data[i][1] = product.getTitle();
+            data[i][2] = String.format("%.2f", discount.calculatePrice(product.getPrice()));
+            ;
+            data[i][3] = product.getDescription();
+        }
+
+        JTable table = new JTable(data, columns);
+        table.setCellSelectionEnabled(true);
+        table.setAutoCreateRowSorter(true);
+        table.setDefaultEditor(Object.class, null);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(600, 200));
+
+        JOptionPane.showMessageDialog(null, scrollPane, title,
+                JOptionPane.PLAIN_MESSAGE);
+    }
 
     private int confirmDialog(JPanel panel, String title) {
         return JOptionPane.showConfirmDialog(null, panel, title,
