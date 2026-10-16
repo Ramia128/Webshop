@@ -24,15 +24,18 @@ public class ProductFileStorage implements ProductStorage {
 
     @Override
     public void saveProduct(Product product) {
+
         if (getProduct(product.getArticleNumber()) != null) {
             throw new IllegalArgumentException("Product already exists");
         }
+
         try {
             Files.writeString(file, product.toFileLine() + System.lineSeparator(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed saving product to file", e);
         }
+        
     }
 
     @Override

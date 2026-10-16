@@ -49,7 +49,7 @@ public class JOptionPaneOutInputHandler implements OutInputHandler {
     public String[] prompt(String title, String[] label, String[] values) {
 
         if (label.length != values.length) {
-            throw new IllegalArgumentException("Label and values length must be same length");
+            throw new IllegalArgumentException("Label and values must be same length");
         }
 
 
